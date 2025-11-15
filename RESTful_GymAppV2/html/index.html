@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Database</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+        h2 {
+            color: #555;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .delete-btn {
+            background: #f44336;
+        }
+        .delete-btn:hover {
+            background: #da190b;
+        }
+        .edit-btn {
+            background: #2196F3;
+        }
+        .edit-btn:hover {
+            background: #0b7dda;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f5e9;
+            border-radius: 4px;
+            display: none;
+        }
+        #error {
+            margin-top: 20px;
+            padding: 15px;
+            background: #ffebee;
+            color: #c62828;
+            border-radius: 4px;
+            display: none;
+        }
+        .users-list {
+            margin-top: 20px;
+        }
+        .user-card {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        .role-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏋️ تست دیتابیس Gym</h1>
+
+        <!-- Role Selector -->
+        <div class="section">
+            <h2>👥 انتخاب نقش</h2>
+            <select id="roleSelector" onchange="toggleRoleUI()">
+                <option value="">نقش را انتخاب کنید</option>
+                <option value="trainee">هنرجو (Trainee)</option>
+                <option value="coach">مربی (Coach)</option>
+            </select>
+            <div class="role-title" id="currentRoleLabel" style="display:none;"></div>
+        </div>
+
+        <!-- Trainee UI (existing) -->
+        <div id="traineeSection" style="display:none;">
+            <!-- Add User -->
+            <div class="section">
+                <h2>➕ اضافه کردن کاربر جدید</h2>
+                <input type="text" id="name" placeholder="نام">
+                <input type="text" id="lastname" placeholder="نام خانوادگی">
+                <input type="number" id="age" placeholder="سن">
+                <input type="number" id="height" placeholder="قد (سانتی‌متر)">
+                <input type="number" step="0.01" id="weight" placeholder="وزن (کیلوگرم)">
+                <input type="email" id="email" placeholder="ایمیل">
+
+                <select id="gender">
+                    <option value="">جنسیت را انتخاب کنید</option>
+                    <option value="Male">مرد</option>
+                    <option value="Female">زن</option>
+                </select>
+                <select id="skilllevel">
+                    <option value="">سطح مهارت را انتخاب کنید</option>
+                    <option value="Beginner">مبتدی</option>
+                    <option value="Intermediate">متوسط</option>
+                    <option value="Master">پیشرفته</option>
+                </select>
+                <select id="plan">
+                    <option value="">پلن را انتخاب کنید</option>
+                    <option value="normal">عادی</option>
+                    <option value="semi-interactive">نیمه تعاملی</option>
+                    <option value="fully-interactive">کاملا تعاملی</option>
+                </select>
+                <button onclick="addUser()">اضافه کردن</button>
+            </div>
+
+            <!-- Delete User -->
+            <div class="section">
+                <h2>🗑️ حذف کاربر</h2>
+                <input type="text" id="deleteId" placeholder="UUID کاربر">
+                <button class="delete-btn" onclick="deleteUser()">حذف</button>
+            </div>
+
+            <!-- Edit User -->
+            <div class="section">
+                <h2>✏️ ویرایش کاربر</h2>
+                <input type="text" id="editId" placeholder="UUID کاربر">
+                <select id="editField">
+                    <option value="">فیلد را انتخاب کنید</option>
+                    <option value="Name">نام</option>
+                    <option value="Lastname">نام خانوادگی</option>
+                    <option value="Age">سن</option>
+                    <option value="Height">قد</option>
+                    <option value="Weight">وزن</option>
+                    <option value="Gender">جنسیت</option>
+                    <option value="Skilllevel">سطح مهارت</option>
+                    <option value="Plan">پلن</option>
+                    <option value="email">ایمیل</option>
+                </select>
+                <input type="text" id="editValue" placeholder="مقدار جدید">
+                <button class="edit-btn" onclick="editUser()">ویرایش</button>
+            </div>
+        </div>
+
+        <!-- Coach UI -->
+        <div id="coachSection" style="display:none;">
+            <div class="section">
+                <h2>➕ اضافه کردن مربی جدید</h2>
+                <input type="text" id="coachName" placeholder="نام">
+                <input type="text" id="coachLastname" placeholder="نام خانوادگی">
+                <input type="number" id="coachAge" placeholder="سن">
+                <select id="coachGender">
+                    <option value="">جنسیت را انتخاب کنید</option>
+                    <option value="Male">مرد</option>
+                    <option value="Female">زن</option>
+                </select>
+                <input type="email" id="coachEmail" placeholder="ایمیل">
+                <input type="number" step="0.01" id="coachCost" placeholder="هزینه درخواستی (تومان هر جلسه)">
+                  <!-- NEW: Profile picture input -->
+                <input type="file" id="coachProfilePic" accept=".jpg,.png">
+                <label for="bio">رزومه / تجربه (لطفاً تجربه‌ها و جوایز خود را ذکر کنید)</label><br>
+                <textarea id="bio" name="bio" rows="10" cols="50" placeholder="بیوگرافی خود را اینجا وارد کنید...."></textarea><br><br>
+                <button onclick="addCoach()">اضافه کردن مربی</button>
+            </div>
+
+        <!-- Edit Coach -->
+<div class="section">
+    <h2>✏️ ویرایش مربی</h2>
+    <input type="text" id="editCoachId" placeholder="UUID مربی">
+    <select id="editCoachField">
+        <option value="">فیلد را انتخاب کنید</option>
+        <option value="name">نام</option>
+        <option value="lastname">نام خانوادگی</option>
+        <option value="age">سن</option>
+        <option value="gender">جنسیت</option>
+        <option value="email">ایمیل</option>
+        <option value="cost">هزینه</option>
+        <option value="verified">تایید شده</option>
+        <option value="bio">بیوگرافی / تجربه</option>
+    </select>
+    <input type="text" id="editCoachValue" placeholder="مقدار جدید">
+    <button class="edit-btn" onclick="editCoach()">ویرایش مربی</button>
+</div>
+
+<!-- Delete Coach -->
+<div class="section">
+    <h2>🗑️ حذف مربی</h2>
+    <input type="text" id="deleteCoachId" placeholder="UUID مربی">
+    <button class="delete-btn" onclick="deleteCoach()">حذف مربی</button>
+</div>
+   
+        </div>
+
+        <div id="result"></div>
+        <div id="error"></div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8080'; // پورت Go app رو اینجا بذار
+
+        function toggleRoleUI() {
+            const role = document.getElementById('roleSelector').value;
+            const traineeSection = document.getElementById('traineeSection');
+            const coachSection = document.getElementById('coachSection');
+            const label = document.getElementById('currentRoleLabel');
+
+            if (role === 'trainee') {
+                traineeSection.style.display = 'block';
+                coachSection.style.display = 'none';
+                label.textContent = 'نقش انتخاب‌شده: هنرجو';
+                label.style.display = 'block';
+            } else if (role === 'coach') {
+                traineeSection.style.display = 'none';
+                coachSection.style.display = 'block';
+                label.textContent = 'نقش انتخاب‌شده: مربی';
+                label.style.display = 'block';
+            } else {
+                traineeSection.style.display = 'none';
+                coachSection.style.display = 'none';
+                label.style.display = 'none';
+            }
+        }
+
+        function showResult(msg) {
+            const result = document.getElementById('result');
+            const error = document.getElementById('error');
+            result.textContent = msg;
+            result.style.display = 'block';
+            error.style.display = 'none';
+            setTimeout(() => result.style.display = 'none', 5000);
+        }
+
+        function showError(msg) {
+            const result = document.getElementById('result');
+            const error = document.getElementById('error');
+            error.textContent = msg;
+            error.style.display = 'block';
+            result.style.display = 'none';
+        }
+
+        async function addUser() {
+            const user = {
+                name: document.getElementById('name').value,
+                lastname: document.getElementById('lastname').value,
+                age: parseInt(document.getElementById('age').value),
+                height: parseInt(document.getElementById('height').value),
+                weight: parseFloat(document.getElementById('weight').value),
+                gender: document.getElementById('gender').value,
+                skilllevel: document.getElementById('skilllevel').value,
+                plan: document.getElementById('plan').value,
+                email: document.getElementById('email').value,
+                bio: document.getElementById('bio').value 
+            };
+
+            if (!user.name || !user.lastname || !user.age || !user.height || !user.weight || !user.gender || !user.skilllevel || !user.plan || !user.email) {
+                showError('لطفا همه فیلدها را پر کنید');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/users`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(user)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showResult(`✅ کاربر با موفقیت اضافه شد! ID: ${data.id}`);
+                    // Clear form
+                    document.getElementById('name').value = '';
+                    document.getElementById('lastname').value = '';
+                    document.getElementById('age').value = '';
+                    document.getElementById('height').value = '';
+                    document.getElementById('weight').value = '';
+                    document.getElementById('gender').value = '';
+                    document.getElementById('skilllevel').value = '';
+                    document.getElementById('plan').value = '';
+                    document.getElementById('email').value = '';
+                } else {
+                    showError('خطا: ' + JSON.stringify(data));
+                }
+            } catch (error) {
+                showError('خطا در اتصال به سرور: ' + error.message);
+            }
+        }
+
+        async function deleteUser() {
+            const id = document.getElementById('deleteId').value;
+            
+            if (!id) {
+                showError('لطفا UUID کاربر را وارد کنید');
+                return;
+            }
+
+            showResult('✅ کاربر با موفقیت حذف شد!\n(این یک نسخه تست است)');
+            document.getElementById('deleteId').value = '';
+        }
+
+        async function editUser() {
+    const id = document.getElementById('editId').value;
+    const field = document.getElementById('editField').value.toLowerCase();
+    const value = document.getElementById('editValue').value;
+
+    if (!id || !field || !value) {
+        showError('لطفا همه فیلدها را پر کنید');
+        return;
+    }
+
+    const payload = {};
+    payload[field] = value;
+
+    try {
+        const response = await fetch(`${API_URL}/users/${id}`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+            showResult('✅ کاربر با موفقیت ویرایش شد!');
+        } else {
+            const data = await response.json();
+            showError('خطا: ' + JSON.stringify(data));
+        }
+    } catch (error) {
+        showError('خطا در اتصال به سرور: ' + error.message);
+    }
+
+    document.getElementById('editId').value = '';
+    document.getElementById('editField').value = '';
+    document.getElementById('editValue').value = '';
+}
+
+        async function deleteUser() {
+    const id = document.getElementById('deleteId').value;
+    if (!id) {
+        showError('لطفا UUID کاربر را وارد کنید');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/users/${id}`, {
+            method: 'DELETE'
+        });
+
+        if (response.ok) {
+            showResult('✅ کاربر با موفقیت حذف شد!');
+        } else {
+            const data = await response.json();
+            showError('خطا: ' + JSON.stringify(data));
+        }
+    } catch (error) {
+        showError('خطا در اتصال به سرور: ' + error.message);
+    }
+
+    document.getElementById('deleteId').value = '';
+}
+
+        async function editCoach() {
+    const id = document.getElementById('editCoachId').value;
+    const field = document.getElementById('editCoachField').value.toLowerCase();
+    const value = document.getElementById('editCoachValue').value;
+
+    if (!id || !field || !value) {
+        showError('لطفا همه فیلدها را پر کنید');
+        return;
+    }
+
+    const payload = {};
+    payload[field] = value;
+
+    try {
+        const response = await fetch(`${API_URL}/coaches/${id}`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+            showResult('✅ مربی با موفقیت ویرایش شد!');
+        } else {
+            const data = await response.json();
+            showError('خطا: ' + JSON.stringify(data));
+        }
+    } catch (error) {
+        showError('خطا در اتصال به سرور: ' + error.message);
+    }
+
+    document.getElementById('editCoachId').value = '';
+    document.getElementById('editCoachField').value = '';
+    document.getElementById('editCoachValue').value = '';
+}
+
+        async function deleteCoach() {
+    const id = document.getElementById('deleteCoachId').value;
+    if (!id) {
+        showError('لطفا UUID مربی را وارد کنید');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/coaches/${id}`, {
+            method: 'DELETE'
+        });
+
+        if (response.ok) {
+            showResult('✅ مربی با موفقیت حذف شد!');
+        } else {
+            const data = await response.json();
+            showError('خطا: ' + JSON.stringify(data));
+        }
+    } catch (error) {
+        showError('خطا در اتصال به سرور: ' + error.message);
+    }
+
+    document.getElementById('deleteCoachId').value = '';
+}
+const formData = new FormData();
+formData.append("profilePic", fileInput.files[0]);
+
+fetch(`${API_URL}/coaches/${coachId}/profile-pic`, {
+    method: "POST",
+    body: formData
+})
+.then(res => res.json())
+.then(data => console.log(data))
+
+   async function addCoach() {
+    const coach = getCoachFormData();
+    if (!coach) return; // validation failed
+
+    try {
+        const coachId = await createCoachInDB(coach);
+        const fileInput = document.getElementById('coachProfilePic');
+
+        if (fileInput.files.length > 0) {
+            await uploadProfilePic(coachId, fileInput.files[0]);
+        }
+
+        showResult(`✅ مربی با موفقیت اضافه شد! ID: ${coachId}`);
+        clearCoachForm();
+
+    } catch (error) {
+        showError(error.message);
+    }
+}
+
+// --- helpers ---
+function getCoachFormData() {
+    const coach = {
+        name: document.getElementById('coachName').value,
+        lastname: document.getElementById('coachLastname').value,
+        age: parseInt(document.getElementById('coachAge').value),
+        gender: document.getElementById('coachGender').value,
+        email: document.getElementById('coachEmail').value,
+        cost: parseFloat(document.getElementById('coachCost').value)
+    };
+
+    if (!coach.name || !coach.lastname || !coach.age || !coach.gender || !coach.email || !coach.cost) {
+        showError('لطفا همه فیلدهای مربی را پر کنید');
+        return null;
+    }
+
+    return coach;
+}
+
+async function createCoachInDB(coach) {
+    const response = await fetch(`${API_URL}/coaches`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(coach)
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error('خطا در ایجاد مربی: ' + JSON.stringify(data));
+    return data.id;
+}
+
+async function uploadProfilePic(coachId, file) {
+    const formData = new FormData();
+    formData.append("profilePic", file);
+
+    const response = await fetch(`${API_URL}/coaches/${coachId}/profile-pic`, {
+        method: 'POST',
+        body: formData
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error('خطا در آپلود تصویر: ' + JSON.stringify(data));
+}
+
+function clearCoachForm() {
+    document.getElementById('coachName').value = '';
+    document.getElementById('coachLastname').value = '';
+    document.getElementById('coachAge').value = '';
+    document.getElementById('coachGender').value = '';
+    document.getElementById('coachEmail').value = '';
+    document.getElementById('coachCost').value = '';
+    document.getElementById('coachProfilePic').value = '';
+    document.getElementById('bio').value = '';
+
+}
+async function addCoach() {
+    const formData = new FormData();
+
+    formData.append("name", document.getElementById('coachName').value);
+    formData.append("lastname", document.getElementById('coachLastname').value);
+    formData.append("age", document.getElementById('coachAge').value);
+    formData.append("gender", document.getElementById('coachGender').value);
+    formData.append("email", document.getElementById('coachEmail').value);
+    formData.append("cost", document.getElementById('coachCost').value);
+    formData.append("bio", document.getElementById('bio').value);
+
+
+    const file = document.getElementById('coachProfilePic').files[0];
+    if (file) {
+        formData.append("profile_pic", file);
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/coaches`, {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            showResult(`مربی اضافه شد. ID: ${data.id}`);
+        } else {
+            showError(JSON.stringify(data));
+        }
+    } catch (err) {
+        showError(err.message);
+    }
+}
+
+
+
+    </script>
+</body>
+</html>
